@@ -1,0 +1,7 @@
+---
+- name: Deploy Ethiack Beacon
+  hosts: beacon_hosts
+  become: true
+
+  roles:
+    - ethiack-beacon

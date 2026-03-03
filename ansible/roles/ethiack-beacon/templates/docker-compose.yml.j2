@@ -1,0 +1,19 @@
+# Managed by Ansible. Do not edit manually.
+services:
+  beacon:
+    image: {{ ethiack_beacon_image }}
+    container_name: ethiack-beacon
+    env_file:
+      - path: beacon.env
+        required: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    network_mode: "host"
+    volumes:
+      - beacon-data:/root/.ethiack
+      - /lib/modules:/lib/modules:ro
+    restart: unless-stopped
+
+volumes:
+  beacon-data:

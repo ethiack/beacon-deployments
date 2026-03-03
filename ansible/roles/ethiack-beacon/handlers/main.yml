@@ -1,0 +1,5 @@
+---
+- name: Restart beacon
+  community.docker.docker_compose_v2:
+    project_src: "{{ ethiack_beacon_install_dir }}"
+    state: restarted

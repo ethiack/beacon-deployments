@@ -1,0 +1,132 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ethiack-beacon.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ethiack-beacon.labels" . | nindent 4 }}
+spec:
+  # One beacon per VPC — do not scale this above 1.
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ethiack-beacon.selectorLabels" . | nindent 6 }}
+  # Recreate ensures the old pod releases the WireGuard interface before the new one starts.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "ethiack-beacon.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "ethiack-beacon.serviceAccountName" . }}
+
+      # Host networking is required so the beacon can reach the node's network interfaces
+      # and establish a WireGuard tunnel on a host UDP port.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- if .Values.hooks.deleteOnTermination }}
+      # Allow enough time for the preStop hook to deregister the beacon via the API.
+      terminationGracePeriodSeconds: 60
+      {{- end }}
+
+      containers:
+        - name: beacon
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          env:
+            - name: ETHIACK_BEACON_NAME
+              value: {{ .Values.beacon.name | required "beacon.name is required" | quote }}
+            {{- if not .Values.beacon.assumeDetectedCidrs }}
+            - name: ETHIACK_BEACON_CIDRS
+              value: {{ .Values.beacon.cidrs | required "beacon.cidrs is required (or set beacon.assumeDetectedCidrs=true)" | quote }}
+            {{- end }}
+            {{- if .Values.beacon.apiUrl }}
+            - name: ETHIACK_API_URL
+              value: {{ .Values.beacon.apiUrl | quote }}
+            {{- end }}
+            {{- if .Values.beacon.pentestSlug }}
+            - name: ETHIACK_PENTEST_SLUG
+              value: {{ .Values.beacon.pentestSlug | quote }}
+            {{- end }}
+            {{- if .Values.beacon.skipPentestSlug }}
+            - name: ETHIACK_SKIP_PENTEST_SLUG
+              value: "1"
+            {{- end }}
+            {{- if .Values.beacon.assumeDetectedCidrs }}
+            - name: ETHIACK_ASSUME_DETECTED_CIDRS
+              value: "1"
+            {{- end }}
+            - name: ETHIACK_BEACON_HEALTH_INTERVAL
+              value: {{ .Values.beacon.healthInterval | default 300 | quote }}
+          envFrom:
+            - secretRef:
+                name: {{ include "ethiack-beacon.secretName" . }}
+
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
+
+          volumeMounts:
+            - name: state
+              mountPath: /root/.ethiack
+            - name: lib-modules
+              mountPath: /lib/modules
+              readOnly: true
+
+          {{- if .Values.hooks.deleteOnTermination }}
+          # Deregister the beacon from the Ethiack portal before the container stops.
+          # Runs on helm uninstall, kubectl delete, pod eviction, and node drain.
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - >-
+                    BEACON_ID=$(python3 -c "import json,os;
+                    d=json.load(open('/root/.ethiack/state.json'));
+                    ids=list(d.get('beacons',{}).keys());
+                    print(ids[-1] if ids else '')" 2>/dev/null);
+                    [ -n "$BEACON_ID" ] && beacon delete "$BEACON_ID" --yes || true
+          {{- end }}
+
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+      volumes:
+        {{- if .Values.persistence.hostPath }}
+        - name: state
+          hostPath:
+            path: {{ .Values.persistence.hostPath }}
+            type: DirectoryOrCreate
+        {{- else if .Values.persistence.enabled }}
+        - name: state
+          persistentVolumeClaim:
+            claimName: {{ include "ethiack-beacon.pvcName" . }}
+        {{- else }}
+        - name: state
+          emptyDir: {}
+        {{- end }}
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+            type: Directory
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

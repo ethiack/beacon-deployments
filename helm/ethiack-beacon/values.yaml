@@ -1,0 +1,87 @@
+# ── Beacon identity (required) ────────────────────────────────────────────────
+
+beacon:
+  # Unique name for this beacon (alphanumeric, hyphens, underscores).
+  name: ""
+
+  # Comma-separated CIDRs to expose through this beacon.
+  # Example: "10.0.0.0/8,192.168.0.0/16"
+  cidrs: ""
+
+  # Pentest slug to associate the CIDRs with (optional).
+  pentestSlug: ""
+
+  # Set to true to skip the pentest slug prompt (ignores pentestSlug).
+  skipPentestSlug: false
+
+  # Set to true to auto-detect CIDRs from the node's network interfaces.
+  # When enabled, cidrs is ignored and the beacon uses whatever networks
+  # it can see on the node (useful when CIDRs are not known ahead of time).
+  assumeDetectedCidrs: false
+
+  # Health reporting interval in seconds.
+  healthInterval: 300
+
+  # API base URL (leave empty for default: https://api.ethiack.com).
+  apiUrl: ""
+
+# ── API credentials (required) ────────────────────────────────────────────────
+
+credentials:
+  apiKey: ""
+  apiSecret: ""
+
+  # Use an existing Kubernetes Secret instead of creating one.
+  # The Secret must contain keys: ETHIACK_API_KEY, ETHIACK_API_SECRET
+  existingSecret: ""
+
+# ── Container image ───────────────────────────────────────────────────────────
+
+image:
+  repository: europe-docker.pkg.dev/ethiack/public/beacon
+  tag: latest
+  pullPolicy: Always
+
+# ── Persistent state ──────────────────────────────────────────────────────────
+# The beacon stores WireGuard config and rathole state in /root/.ethiack.
+# Persistence is strongly recommended so beacon identity survives pod restarts.
+
+persistence:
+  enabled: true
+  storageClass: ""   # leave empty to use the cluster default
+  size: 500Mi
+  accessMode: ReadWriteOnce
+  # Use a host directory instead of a PVC. Useful for single-node clusters or
+  # when you want the state visible on the node filesystem (e.g. ~/ethiack-beacon).
+  # When set, persistence.enabled is ignored and no PVC is created.
+  # Example: hostPath: /home/ubuntu/ethiack-beacon
+  hostPath: ""
+
+# ── Kubernetes resource settings ──────────────────────────────────────────────
+
+resources: {}
+  # requests:
+  #   cpu: 100m
+  #   memory: 64Mi
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+
+# Node selection — useful to pin the beacon to a specific node
+# (e.g. one with access to the desired subnet).
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# ── Lifecycle hooks ───────────────────────────────────────────────────────────
+
+hooks:
+  # When true, a preStop hook deregisters the beacon from the Ethiack portal
+  # before the container stops (helm uninstall, pod deletion, node drain, etc).
+  # Set to false if you want to deregister manually or manage it externally.
+  deleteOnTermination: true

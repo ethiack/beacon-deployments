@@ -1,0 +1,16 @@
+---
+# ── Required ─────────────────────────────────────────────────────────────────
+# Use ansible-vault to encrypt these in production:
+#   ansible-vault encrypt_string 'YOUR_KEY' --name 'ethiack_api_key'
+ethiack_api_key: ""
+ethiack_api_secret: ""
+
+# ── Beacon config ─────────────────────────────────────────────────────────────
+# Override per-host in host_vars/<hostname>.yml if hosts are in different VPCs.
+ethiack_beacon_name: "{{ inventory_hostname }}"
+ethiack_beacon_cidrs: ""  # e.g. "10.0.0.0/8,192.168.0.0/16"
+
+# ── Optional ──────────────────────────────────────────────────────────────────
+# ethiack_api_url: "https://api.ethiack.com"
+# ethiack_pentest_slug: "my-pentest"
+# ethiack_beacon_health_interval: 300

@@ -1,0 +1,29 @@
+---
+# ── Required (no defaults — must be set) ─────────────────────────────────────
+# ethiack_api_key: ""
+# ethiack_api_secret: ""
+# ethiack_beacon_cidrs: ""
+
+# ── Beacon identity ───────────────────────────────────────────────────────────
+ethiack_beacon_name: "{{ inventory_hostname }}"
+
+# ── API ───────────────────────────────────────────────────────────────────────
+ethiack_api_url: "https://api.ethiack.com"
+
+# ── Optional beacon settings ──────────────────────────────────────────────────
+ethiack_beacon_health_interval: 300
+ethiack_pentest_slug: ""
+# Set to true to auto-detect CIDRs from the host's interfaces (ignores ethiack_beacon_cidrs).
+ethiack_assume_detected_cidrs: false
+# Set to true to skip the pentest slug prompt entirely.
+ethiack_skip_pentest_slug: false
+
+# ── Container image ───────────────────────────────────────────────────────────
+ethiack_beacon_image: "europe-docker.pkg.dev/ethiack/public/beacon:latest"
+
+# ── Install location ──────────────────────────────────────────────────────────
+ethiack_beacon_install_dir: "{{ ansible_user_dir }}/ethiack-beacon"
+
+# ── Docker installation ───────────────────────────────────────────────────────
+# Set to false if Docker is already installed on the target.
+ethiack_beacon_docker_install: true

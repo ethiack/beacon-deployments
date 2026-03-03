@@ -1,0 +1,17 @@
+apiVersion: v2
+name: ethiack-beacon
+description: Ethiack Beacon — WireGuard-based connectivity agent for internal network access during pentests.
+type: application
+version: 0.1.0
+appVersion: "latest"
+keywords:
+  - ethiack
+  - beacon
+  - wireguard
+  - pentest
+home: https://ethiack.com
+sources:
+  - https://github.com/ethiack/beacon
+maintainers:
+  - name: Ethiack
+    url: https://ethiack.com

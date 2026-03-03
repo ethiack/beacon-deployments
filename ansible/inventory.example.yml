@@ -1,0 +1,21 @@
+---
+all:
+  children:
+    beacon_hosts:
+      hosts:
+        # One beacon per VPC / network segment.
+        # Rename hosts to match your environment.
+        vpc-a-beacon:
+          ansible_host: 10.0.1.50
+          ansible_user: ubuntu
+          # ansible_ssh_private_key_file: ~/.ssh/my-key.pem
+          ethiack_beacon_name: vpc-a
+          ethiack_assume_detected_cidrs: yes
+
+        vpc-b-beacon:
+          ansible_host: 10.1.1.50
+          ansible_user: ec2-user
+          # ansible_ssh_private_key_file: ~/.ssh/my-key.pem
+          ethiack_beacon_name: vpc-b
+          ethiack_beacon_cidrs: "10.1.0.0/16"
+          

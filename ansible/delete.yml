@@ -1,0 +1,53 @@
+---
+# Gracefully removes an Ethiack Beacon from a target host.
+#
+# Steps:
+#   1. Read the beacon ID from the container's local state.
+#   2. Call `beacon delete --yes` inside the container so the beacon is
+#      deregistered from the Ethiack portal before anything is torn down.
+#   3. Stop the Docker Compose stack and remove the data volume.
+#   4. Optionally delete the install directory (disabled by default).
+#
+# Usage:
+#   ansible-playbook -i inventory.yml deploy/ansible/delete.yml
+#
+# To also remove the install directory (/opt/ethiack-beacon by default):
+#   ansible-playbook -i inventory.yml deploy/ansible/delete.yml \
+#     -e ethiack_beacon_remove_install_dir=true
+
+- name: Delete Ethiack Beacon
+  hosts: beacon_hosts
+  become: true
+
+  tasks:
+    - name: Read beacon ID from container state
+      ansible.builtin.command:
+        cmd: >-
+          docker exec ethiack-beacon
+          python3 -c "import json,os;
+          data=json.load(open('/root/.ethiack/state.json'));
+          ids=list(data.get('beacons',{}).keys());
+          print(ids[-1] if ids else '')"
+      register: _beacon_id
+      changed_when: false
+      ignore_errors: true
+
+    - name: Deregister beacon from Ethiack portal
+      ansible.builtin.command:
+        cmd: docker exec ethiack-beacon beacon delete "{{ _beacon_id.stdout | trim }}" --yes
+      when:
+        - _beacon_id is succeeded
+        - _beacon_id.stdout | trim | length > 0
+      ignore_errors: true
+
+    - name: Stop Docker Compose stack and remove data volume
+      community.docker.docker_compose_v2:
+        project_src: "{{ ethiack_beacon_install_dir | default('/opt/ethiack-beacon') }}"
+        state: absent
+        remove_volumes: true
+
+    - name: Remove install directory
+      ansible.builtin.file:
+        path: "{{ ethiack_beacon_install_dir | default('/opt/ethiack-beacon') }}"
+        state: absent
+      when: ethiack_beacon_remove_install_dir | default(false) | bool

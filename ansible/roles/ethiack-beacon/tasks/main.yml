@@ -1,0 +1,119 @@
+---
+- name: Assert required variables
+  ansible.builtin.assert:
+    that:
+      - ethiack_api_key | length > 0
+      - ethiack_api_secret | length > 0
+      - ethiack_assume_detected_cidrs | bool or (ethiack_beacon_cidrs | default('') | length > 0)
+    fail_msg: >-
+      ethiack_api_key and ethiack_api_secret are required.
+      Also set ethiack_beacon_cidrs or set ethiack_assume_detected_cidrs: true to auto-detect from host interfaces.
+
+# ── Docker installation ───────────────────────────────────────────────────────
+
+- name: Install Docker prerequisites (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+  when:
+    - ethiack_beacon_docker_install | bool
+    - ansible_os_family == "Debian"
+
+- name: Add Docker GPG key (Debian/Ubuntu)
+  ansible.builtin.shell: |
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg \
+      -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+  args:
+    creates: /etc/apt/keyrings/docker.asc
+  when:
+    - ethiack_beacon_docker_install | bool
+    - ansible_os_family == "Debian"
+
+- name: Add Docker apt repository (Debian/Ubuntu)
+  ansible.builtin.shell: |
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+      https://download.docker.com/linux/{{ ansible_distribution | lower }} \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+      > /etc/apt/sources.list.d/docker.list
+  args:
+    creates: /etc/apt/sources.list.d/docker.list
+  when:
+    - ethiack_beacon_docker_install | bool
+    - ansible_os_family == "Debian"
+
+- name: Install Docker CE (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  when:
+    - ethiack_beacon_docker_install | bool
+    - ansible_os_family == "Debian"
+
+- name: Install Docker CE (RHEL/Amazon Linux)
+  ansible.builtin.shell: |
+    dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  args:
+    creates: /usr/bin/dockerd
+  when:
+    - ethiack_beacon_docker_install | bool
+    - ansible_os_family == "RedHat"
+
+- name: Start and enable Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  when: ethiack_beacon_docker_install | bool
+
+# ── Beacon deployment ─────────────────────────────────────────────────────────
+
+- name: Create install directory
+  ansible.builtin.file:
+    path: "{{ ethiack_beacon_install_dir }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+
+- name: Template beacon.env
+  ansible.builtin.template:
+    src: beacon.env.j2
+    dest: "{{ ethiack_beacon_install_dir }}/beacon.env"
+    mode: "0600"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+  notify: Restart beacon
+
+- name: Template docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ ethiack_beacon_install_dir }}/docker-compose.yml"
+    mode: "0644"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+  notify: Restart beacon
+
+- name: Pull beacon image
+  community.docker.docker_image:
+    name: "{{ ethiack_beacon_image }}"
+    source: pull
+    force_source: true
+
+- name: Start beacon via Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ ethiack_beacon_install_dir }}"
+    state: present
+    pull: always

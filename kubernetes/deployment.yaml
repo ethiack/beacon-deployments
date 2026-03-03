@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ethiack-beacon
+  namespace: ethiack
+  labels:
+    app.kubernetes.io/name: ethiack-beacon
+spec:
+  # One beacon per VPC - do not scale above 1.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ethiack-beacon
+  # Recreate ensures the old pod releases the WireGuard interface before the new one starts.
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ethiack-beacon
+    spec:
+      # Host networking is required: the beacon binds a WireGuard UDP port on the node
+      # and must be able to see the node's network interfaces / routing table.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      # Allow enough time for the preStop hook to deregister the beacon via the API.
+      terminationGracePeriodSeconds: 60
+
+      containers:
+        - name: beacon
+          image: europe-docker.pkg.dev/ethiack/public/beacon:latest
+          imagePullPolicy: Always
+
+          env:
+            # ── Required ───────────────────────────────────────────────────
+            - name: ETHIACK_BEACON_NAME
+              value: "my-k8s-beacon"           # <-- change this
+
+            # Provide CIDRs explicitly:
+            - name: ETHIACK_BEACON_CIDRS
+              value: "10.0.0.0/8"              # <-- change this (comma-separated)
+            # OR auto-detect from the node's network interfaces (remove ETHIACK_BEACON_CIDRS above):
+            # - name: ETHIACK_ASSUME_DETECTED_CIDRS
+            #   value: "1"
+
+            # ── Optional ───────────────────────────────────────────────────
+            # Add CIDRs to an existing pentest scope automatically:
+            # - name: ETHIACK_PENTEST_SLUG
+            #   value: "my-pentest"
+            # Skip the pentest slug prompt entirely (useful for automated deploys):
+            # - name: ETHIACK_SKIP_PENTEST_SLUG
+            #   value: "1"
+            # - name: ETHIACK_BEACON_HEALTH_INTERVAL
+            #   value: "300"
+            # - name: ETHIACK_API_URL
+            #   value: "https://api.ethiack.com"
+
+          envFrom:
+            - secretRef:
+                name: ethiack-beacon-credentials
+
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
+
+          volumeMounts:
+            - name: state
+              mountPath: /root/.ethiack
+            - name: lib-modules
+              mountPath: /lib/modules
+              readOnly: true
+
+          # Deregister the beacon from the Ethiack portal before the container stops.
+          # This runs when the pod is deleted (kubectl delete / scale to 0 / node drain).
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - >-
+                    BEACON_ID=$(python3 -c "import json,os;
+                    d=json.load(open('/root/.ethiack/state.json'));
+                    ids=list(d.get('beacons',{}).keys());
+                    print(ids[-1] if ids else '')" 2>/dev/null);
+                    [ -n "$BEACON_ID" ] && beacon delete "$BEACON_ID" --yes || true
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+      volumes:
+        # Default: use the PVC defined in pvc.yaml.
+        - name: state
+          persistentVolumeClaim:
+            claimName: ethiack-beacon-state
+        # Alternative: store state in a host directory instead of a PVC.
+        # Remove the PVC block above and uncomment this instead.
+        # The directory is created automatically if it does not exist.
+        # - name: state
+        #   hostPath:
+        #     path: /home/ubuntu/ethiack-beacon   # <-- change to desired path
+        #     type: DirectoryOrCreate
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+            type: Directory

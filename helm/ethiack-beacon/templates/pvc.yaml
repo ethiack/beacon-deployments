@@ -1,0 +1,18 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.hostPath) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ethiack-beacon.pvcName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "ethiack-beacon.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode | default "ReadWriteOnce" }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | default "500Mi" }}
+{{- end }}

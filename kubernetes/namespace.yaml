@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ethiack
+  labels:
+    app.kubernetes.io/name: ethiack-beacon
+    app.kubernetes.io/managed-by: kubectl
