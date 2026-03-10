@@ -9,7 +9,6 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
-    network_mode: "host"
     volumes:
       - beacon-data:/root/.ethiack
       - /lib/modules:/lib/modules:ro
