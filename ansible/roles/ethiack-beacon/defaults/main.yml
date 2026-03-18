@@ -1,5 +1,5 @@
 ---
-# ── Required (no defaults — must be set) ─────────────────────────────────────
+# ── Required (no defaults - must be set) ─────────────────────────────────────
 # ethiack_api_key: ""
 # ethiack_api_secret: ""
 # ethiack_beacon_cidrs: ""
@@ -15,8 +15,10 @@ ethiack_beacon_health_interval: 300
 ethiack_pentest_slug: ""
 # Set to true to auto-detect CIDRs from the host's interfaces (ignores ethiack_beacon_cidrs).
 ethiack_assume_detected_cidrs: false
-# Set to true to skip the pentest slug prompt entirely.
-ethiack_skip_pentest_slug: false
+# Automatically create a new pentest and add the beacon's CIDRs to its scope (default: true).
+ethiack_create_pentest: true
+# Set to true to skip all pentest configuration (ignores ethiack_create_pentest and ethiack_pentest_slug).
+ethiack_skip_pentest_config: false
 
 # ── Container image ───────────────────────────────────────────────────────────
 ethiack_beacon_image: "europe-docker.pkg.dev/ethiack/public/beacon:latest"
