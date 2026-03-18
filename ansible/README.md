@@ -56,7 +56,9 @@ All variables are defined in `roles/ethiack-beacon/defaults/main.yml`.
 | `ethiack_beacon_cidrs` | yes | - | CIDRs to expose, e.g. `10.0.0.0/8` |
 | `ethiack_api_url` | no | `https://api.ethiack.com` | API base URL |
 | `ethiack_beacon_health_interval` | no | `300` | Health reporting interval (seconds) |
-| `ethiack_pentest_slug` | no | `""` | Pentest slug to associate CIDRs with |
+| `ethiack_pentest_slug` | no | `""` | New pentest slug to add the beacon's CIDRs to (overrides `ethiack_create_pentest`) |
+| `ethiack_create_pentest` | no | `true` | Automatically create a new pentest and add the beacon's CIDRs to its scope |
+| `ethiack_skip_pentest_config` | no | `false` | Skip all pentest configuration entirely |
 | `ethiack_beacon_image` | no | `europe-docker.pkg.dev/ethiack/public/beacon:latest` | Container image |
 | `ethiack_beacon_install_dir` | no | `~/ethiack-beacon` | Directory for compose files on target |
 

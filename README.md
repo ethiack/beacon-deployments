@@ -144,10 +144,11 @@ Set `ETHIACK_ASSUME_DETECTED_CIDRS=1` to let the beacon detect CIDRs automatical
 
 ### Pentest scope
 
-| Variable | Description |
-|----------|-------------|
-| `ETHIACK_PENTEST_SLUG` | Pentest slug - automatically adds the beacon's CIDRs to that pentest's scope |
-| `ETHIACK_SKIP_PENTEST_SLUG` | Set to `1` to skip scope assignment entirely |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ETHIACK_CREATE_PENTEST` | `true` | Automatically create a new pentest and add the beacon's CIDRs to its scope |
+| `ETHIACK_PENTEST_SLUG` | - | Add the beacon's CIDRs to an existing pentest's scope (overrides `ETHIACK_CREATE_PENTEST`) |
+| `ETHIACK_SKIP_PENTEST_CONFIG` | - | Set to `1` to skip all pentest configuration entirely |
 
 ### Optional
 

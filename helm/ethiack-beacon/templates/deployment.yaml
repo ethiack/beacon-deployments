@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "ethiack-beacon.labels" . | nindent 4 }}
 spec:
-  # One beacon per VPC — do not scale this above 1.
+  # One beacon per VPC - do not scale this above 1.
   replicas: 1
   selector:
     matchLabels:
@@ -46,12 +46,14 @@ spec:
             - name: ETHIACK_API_URL
               value: {{ .Values.beacon.apiUrl | quote }}
             {{- end }}
+            - name: ETHIACK_CREATE_PENTEST
+              value: {{ .Values.beacon.createPentest | default true | quote }}
             {{- if .Values.beacon.pentestSlug }}
             - name: ETHIACK_PENTEST_SLUG
               value: {{ .Values.beacon.pentestSlug | quote }}
             {{- end }}
-            {{- if .Values.beacon.skipPentestSlug }}
-            - name: ETHIACK_SKIP_PENTEST_SLUG
+            {{- if .Values.beacon.skipPentestConfig }}
+            - name: ETHIACK_SKIP_PENTEST_CONFIG
               value: "1"
             {{- end }}
             {{- if .Values.beacon.assumeDetectedCidrs }}

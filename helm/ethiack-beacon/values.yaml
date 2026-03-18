@@ -8,11 +8,14 @@ beacon:
   # Example: "10.0.0.0/8,192.168.0.0/16"
   cidrs: ""
 
-  # Pentest slug to associate the CIDRs with (optional).
+  # Automatically create a new pentest and add the beacon's CIDRs to its scope.
+  createPentest: true
+
+  # New pentest slug to add the beacon's CIDRs to an existing pentest (overrides createPentest).
   pentestSlug: ""
 
-  # Set to true to skip the pentest slug prompt (ignores pentestSlug).
-  skipPentestSlug: false
+  # Set to true to skip all pentest configuration (ignores createPentest and pentestSlug).
+  skipPentestConfig: false
 
   # Set to true to auto-detect CIDRs from the node's network interfaces.
   # When enabled, cidrs is ignored and the beacon uses whatever networks
@@ -67,7 +70,7 @@ resources: {}
   #   cpu: 500m
   #   memory: 256Mi
 
-# Node selection — useful to pin the beacon to a specific node
+# Node selection - useful to pin the beacon to a specific node
 # (e.g. one with access to the desired subnet).
 nodeSelector: {}
 tolerations: []

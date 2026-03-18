@@ -44,11 +44,14 @@ spec:
             #   value: "1"
 
             # ── Optional ───────────────────────────────────────────────────
-            # Add CIDRs to an existing pentest scope automatically:
+            # A new pentest is created automatically on first deploy. Set to "false" to disable:
+            - name: ETHIACK_CREATE_PENTEST
+              value: "true"                 # set to "false" to disable auto-creation
+            # Add CIDRs to an existing pentest scope instead:
             # - name: ETHIACK_PENTEST_SLUG
             #   value: "my-pentest"
-            # Skip the pentest slug prompt entirely (useful for automated deploys):
-            # - name: ETHIACK_SKIP_PENTEST_SLUG
+            # Skip all pentest configuration entirely:
+            # - name: ETHIACK_SKIP_PENTEST_CONFIG
             #   value: "1"
             # - name: ETHIACK_BEACON_HEALTH_INTERVAL
             #   value: "300"
