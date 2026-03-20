@@ -9,6 +9,43 @@
       ethiack_api_key and ethiack_api_secret are required.
       Also set ethiack_beacon_cidrs or set ethiack_assume_detected_cidrs: true to auto-detect from host interfaces.
 
+# ── CIDR auto-detection (host-side) ──────────────────────────────────────────
+# The beacon runs inside Docker without host networking, so it cannot see the
+# real host interfaces. When assume_detected_cidrs is requested we detect them
+# here on the host (same approach as the install.sh script) and pass them
+# explicitly as ETHIACK_BEACON_CIDRS.
+
+- name: Detect host CIDRs from network interfaces
+  ansible.builtin.shell: |
+    python3 -c "
+    import subprocess, ipaddress, re
+    out = subprocess.check_output(['ip', '-o', '-f', 'inet', 'addr', 'show']).decode()
+    skip = re.compile(r'^(lo|docker|br-|wg|veth|virbr)')
+    private = [ipaddress.ip_network(n) for n in [
+        '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '100.64.0.0/10'
+    ]]
+    cidrs = []
+    for line in out.splitlines():
+        p = line.split()
+        iface, addr = p[1], p[3]
+        if skip.match(iface):
+            continue
+        iface_obj = ipaddress.ip_interface(addr)
+        if any(iface_obj.ip in net for net in private):
+            cidrs.append(str(iface_obj.network))
+    print(','.join(dict.fromkeys(cidrs)))
+    "
+  register: _ethiack_detected_cidrs
+  changed_when: false
+  when: ethiack_assume_detected_cidrs | bool
+
+- name: Set ethiack_beacon_cidrs from detected host interfaces
+  ansible.builtin.set_fact:
+    ethiack_beacon_cidrs: "{{ _ethiack_detected_cidrs.stdout }}"
+  when:
+    - ethiack_assume_detected_cidrs | bool
+    - _ethiack_detected_cidrs.stdout | length > 0
+
 # ── Docker installation ───────────────────────────────────────────────────────
 
 - name: Install Docker prerequisites (Debian/Ubuntu)
