@@ -60,6 +60,10 @@ cp ansible/inventory.example.yml ansible/inventory.yml
 #    production). Exported shell variables are NOT read by the role.
 
 # 4. Deploy
+ansible-playbook -i ansible/inventory.yml ansible/site.yml
+
+# Alternatively, skip step 3 for a quick test and pass the key inline. Use one
+# or the other: extra-vars outrank group_vars and would override a vaulted value.
 ansible-playbook -i ansible/inventory.yml ansible/site.yml \
   -e ethiack_api_key=phx_your_api_key
 ```
