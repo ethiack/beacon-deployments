@@ -4,11 +4,12 @@ Use these manifests with `kubectl apply` if you prefer not to use Helm.
 
 ## Quick start
 
-1. Edit `secret.yaml` - replace the placeholder values with your base64-encoded credentials:
+1. Edit `secret.yaml` - replace the placeholder with your base64-encoded API key:
    ```bash
-   echo -n 'YOUR_API_KEY'    | base64
-   echo -n 'YOUR_API_SECRET' | base64
+   echo -n 'YOUR_API_KEY' | base64
    ```
+   A `phx_`-prefixed key needs nothing else. For a legacy key:secret pair, also
+   uncomment `ETHIACK_API_SECRET` and set it to `echo -n 'YOUR_API_SECRET' | base64`.
 
 2. Edit `deployment.yaml` - set `ETHIACK_BEACON_NAME` and `ETHIACK_BEACON_CIDRS`.
 

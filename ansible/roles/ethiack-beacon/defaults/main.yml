@@ -1,8 +1,10 @@
 ---
 # ── Required (no defaults - must be set) ─────────────────────────────────────
 # ethiack_api_key: ""
-# ethiack_api_secret: ""
 # ethiack_beacon_cidrs: ""
+
+# Legacy (non-phx_) keys only; empty means "phx_ key, no secret".
+ethiack_api_secret: ""
 
 # ── Beacon identity ───────────────────────────────────────────────────────────
 ethiack_beacon_name: "{{ inventory_hostname }}"
