@@ -3,6 +3,10 @@
 # Use ansible-vault to encrypt these in production:
 #   ansible-vault encrypt_string 'YOUR_KEY' --name 'ethiack_api_key'
 ethiack_api_key: ""
+
+# ── Legacy credentials ───────────────────────────────────────────────────────
+# Only for legacy (non-phx_) key:secret pairs. Leave empty for phx_ keys -
+# ETHIACK_API_SECRET is then omitted from the generated beacon.env entirely.
 ethiack_api_secret: ""
 
 # ── Beacon config ─────────────────────────────────────────────────────────────

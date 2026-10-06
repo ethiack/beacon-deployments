@@ -2,11 +2,15 @@
 - name: Assert required variables
   ansible.builtin.assert:
     that:
-      - ethiack_api_key | length > 0
-      - ethiack_api_secret | length > 0
-      - ethiack_assume_detected_cidrs | bool or (ethiack_beacon_cidrs | default('') | length > 0)
+      # default('', true) rather than default(''): a var written as `foo:` with
+      # no value is YAML null, which default() passes straight through to
+      # `| length` and crashes. The `true` substitutes for any falsy value.
+      - ethiack_api_key | default('', true) | length > 0
+      # phx_ keys are bearer tokens with no secret; legacy keys still need one.
+      - ethiack_api_key | default('', true) is match('phx_') or (ethiack_api_secret | default('', true) | length > 0)
+      - ethiack_assume_detected_cidrs | bool or (ethiack_beacon_cidrs | default('', true) | length > 0)
     fail_msg: >-
-      ethiack_api_key and ethiack_api_secret are required.
+      ethiack_api_key is required; ethiack_api_secret is required only for legacy (non-phx_) keys.
       Also set ethiack_beacon_cidrs or set ethiack_assume_detected_cidrs: true to auto-detect from host interfaces.
 
 # ── CIDR auto-detection (host-side) ──────────────────────────────────────────
