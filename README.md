@@ -118,7 +118,9 @@ sends two credentials - but to clear the stale value, delete the Secret once and
 re-run the upgrade:
 
 ```bash
-kubectl -n <namespace> delete secret <release>-ethiack-beacon-credentials
+# Matches only this release's credentials Secret, whatever it is named
+# (ethiack-beacon-credentials for the install command above).
+kubectl -n <namespace> delete secret -l app.kubernetes.io/instance=<release>
 helm upgrade <release> ./helm/ethiack-beacon --set credentials.apiKey=phx_your_api_key ...
 ```
 
@@ -165,6 +167,11 @@ See [`kubernetes/README.md`](kubernetes/README.md) for notes on host networking,
 | `ETHIACK_API_KEY` | API key - from the [Ethiack Portal](https://portal.ethiack.com). A `phx_`-prefixed key authenticates as `Authorization: Bearer` and has no secret |
 | `ETHIACK_BEACON_NAME` | Unique name for this beacon |
 | `ETHIACK_BEACON_CIDRS` | Comma-separated CIDRs to expose, e.g. `10.0.0.0/8,192.168.1.0/24` |
+
+`phx_` keys need beacon **2.1.3** or later. The default `latest` image already has
+it. If you pin an image version (Helm `image.tag`, Ansible `ethiack_beacon_image`,
+or the image in `kubernetes/deployment.yaml`), move to `2.1.3` or newer before
+switching to a `phx_` key - older versions only accept a key:secret pair.
 
 ### Legacy credentials
 
