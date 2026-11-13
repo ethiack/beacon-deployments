@@ -65,7 +65,7 @@ ansible-playbook -i ansible/inventory.yml ansible/site.yml
 # Alternatively, skip step 3 for a quick test and pass the key inline. Use one
 # or the other: extra-vars outrank group_vars and would override a vaulted value.
 ansible-playbook -i ansible/inventory.yml ansible/site.yml \
-  -e ethiack_api_key=phx_your_api_key
+  -e ethiack_api_key=your_api_key
 ```
 
 See [`ansible/README.md`](ansible/README.md) for full variable reference, multi-VPC setup, and Ansible Vault instructions.
@@ -78,19 +78,19 @@ See [`ansible/README.md`](ansible/README.md) for full variable reference, multi-
 
 ```bash
 helm install ethiack-beacon ./helm/ethiack-beacon \
-  --set credentials.apiKey=phx_your_api_key \
+  --set credentials.apiKey=your_api_key \
   --set beacon.name=prod-cluster \
   --set beacon.cidrs="10.0.0.0/8\,172.16.0.0/12"
 ```
 
-Legacy (non-`phx_`) keys additionally set `--set credentials.apiSecret=your_api_secret`.
+Legacy keys (not starting with `phx_` or `ethiack_`) additionally set `--set credentials.apiSecret=your_api_secret`.
 
 Or use a `values.yaml`:
 
 ```yaml
 credentials:
-  apiKey: phx_your_api_key
-  # Legacy (non-phx_) keys only:
+  apiKey: your_api_key
+  # Legacy keys (not starting with phx_ or ethiack_) only:
   # apiSecret: your_api_secret
 beacon:
   name: prod-cluster
@@ -105,23 +105,23 @@ See [`helm/ethiack-beacon/`](helm/ethiack-beacon/) for the full chart and values
 
 ### Upgrading to chart 0.2.0
 
-Chart 0.2.0 makes `credentials.apiSecret` optional (only legacy, non-`phx_` keys
-need it) and renders the credentials Secret as `data` instead of `stringData`.
+Chart 0.2.0 makes `credentials.apiSecret` optional (only legacy keys need it)
+and renders the credentials Secret as `data` instead of `stringData`.
 Upgrading in place with both values still set is a no-op change - nothing to do.
 
-If you are **rotating a legacy key:secret pair to a `phx_` key** on a release
-first installed with chart 0.1.0, clearing `credentials.apiSecret` leaves the old
-`ETHIACK_API_SECRET` orphaned in the live Secret: it is named under `stringData`
-in that release's stored manifest, so Helm computes no deletion for it. The
-beacon ignores it - the CLI picks its auth scheme from the key prefix and never
-sends two credentials - but to clear the stale value, delete the Secret once and
-re-run the upgrade:
+If you are **rotating a legacy key:secret pair to a `phx_` or `ethiack_` key**
+on a release first installed with chart 0.1.0, clearing `credentials.apiSecret`
+leaves the old `ETHIACK_API_SECRET` orphaned in the live Secret: it is named
+under `stringData` in that release's stored manifest, so Helm computes no
+deletion for it. The beacon ignores it - the CLI picks its auth scheme from the
+key prefix and never sends two credentials - but to clear the stale value,
+delete the Secret once and re-run the upgrade:
 
 ```bash
 # Matches only this release's credentials Secret, whatever it is named
 # (ethiack-beacon-credentials for the install command above).
 kubectl -n <namespace> delete secret -l app.kubernetes.io/instance=<release>
-helm upgrade <release> ./helm/ethiack-beacon --set credentials.apiKey=phx_your_api_key ...
+helm upgrade <release> ./helm/ethiack-beacon --set credentials.apiKey=your_api_key ...
 ```
 
 Releases installed on 0.2.0 or later do not need this - clearing
@@ -136,7 +136,7 @@ Releases installed on 0.2.0 or later do not need this - clearing
 ```bash
 # 1. Base64-encode your API key
 echo -n 'YOUR_API_KEY'    | base64
-echo -n 'YOUR_API_SECRET' | base64   # legacy (non-phx_) keys only
+echo -n 'YOUR_API_SECRET' | base64   # legacy keys only
 
 # 2. Edit secret.yaml with the encoded values
 # 3. Edit deployment.yaml - set ETHIACK_BEACON_NAME and ETHIACK_BEACON_CIDRS
@@ -164,7 +164,7 @@ See [`kubernetes/README.md`](kubernetes/README.md) for notes on host networking,
 
 | Variable | Description |
 |----------|-------------|
-| `ETHIACK_API_KEY` | API key - from the [Ethiack Portal](https://portal.ethiack.com). A `phx_`-prefixed key authenticates as `Authorization: Bearer` and has no secret |
+| `ETHIACK_API_KEY` | API key - from the [Ethiack Portal](https://portal.ethiack.com). A key starting with `phx_` or `ethiack_` authenticates as `Authorization: Bearer` and has no secret |
 | `ETHIACK_BEACON_NAME` | Unique name for this beacon |
 | `ETHIACK_BEACON_CIDRS` | Comma-separated CIDRs to expose, e.g. `10.0.0.0/8,192.168.1.0/24` |
 
@@ -172,12 +172,14 @@ See [`kubernetes/README.md`](kubernetes/README.md) for notes on host networking,
 it. If you pin an image version (Helm `image.tag`, Ansible `ethiack_beacon_image`,
 or the image in `kubernetes/deployment.yaml`), move to `2.1.3` or newer before
 switching to a `phx_` key - older versions only accept a key:secret pair.
+`ethiack_` keys need beacon **2.3.0** or later. Move a pinned image to `2.3.0`
+or newer before switching to an `ethiack_` key.
 
 ### Legacy credentials
 
 | Variable | Description |
 |----------|-------------|
-| `ETHIACK_API_SECRET` | API secret - required only for legacy (non-`phx_`) keys, which are sent as HTTP Basic. Do not set it alongside a `phx_` key |
+| `ETHIACK_API_SECRET` | API secret - required only for legacy keys (not starting with `phx_` or `ethiack_`), which are sent as HTTP Basic. Do not set it alongside a `phx_` or `ethiack_` key |
 
 ### CIDR auto-detection
 
