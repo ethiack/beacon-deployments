@@ -28,11 +28,11 @@ Tested on: Ubuntu 20.04/22.04/24.04, Debian 11/12, Amazon Linux 2/2023, RHEL/Cen
    # Quick test - pass as extra-vars (exported shell variables are NOT read).
    # Extra-vars have the highest precedence, so use either this or group_vars,
    # not both - `-e` silently overrides a vaulted value.
-   ansible-playbook -i inventory.yml site.yml -e ethiack_api_key=phx_your_api_key
+   ansible-playbook -i inventory.yml site.yml -e ethiack_api_key=your_api_key
 
    # Production (vault-encrypted):
-   ansible-vault encrypt_string 'phx_your_api_key' --name 'ethiack_api_key'
-   # Legacy (non-phx_) keys only:
+   ansible-vault encrypt_string 'your_api_key' --name 'ethiack_api_key'
+   # Legacy keys (not starting with phx_ or ethiack_) only:
    ansible-vault encrypt_string 'your_api_secret'  --name 'ethiack_api_secret'
    # Paste the output into group_vars/all.yml
    ```
@@ -52,8 +52,8 @@ All variables are defined in `roles/ethiack-beacon/defaults/main.yml`.
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `ethiack_api_key` | yes | - | Ethiack API key. A `phx_`-prefixed key is a bearer token and needs no secret |
-| `ethiack_api_secret` | legacy only | `""` | Ethiack API secret - required only for legacy (non-`phx_`) keys |
+| `ethiack_api_key` | yes | - | Ethiack API key. A key starting with `phx_` or `ethiack_` is a bearer token and needs no secret |
+| `ethiack_api_secret` | legacy only | `""` | Ethiack API secret - required only for legacy keys (not starting with `phx_` or `ethiack_`) |
 | `ethiack_beacon_name` | yes | `{{ inventory_hostname }}` | Beacon identifier |
 | `ethiack_beacon_cidrs` | yes | - | CIDRs to expose, e.g. `10.0.0.0/8` |
 | `ethiack_api_url` | no | `https://api.ethiack.com` | API base URL |

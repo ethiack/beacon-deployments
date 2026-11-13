@@ -3,7 +3,7 @@
 # ethiack_api_key: ""
 # ethiack_beacon_cidrs: ""
 
-# Legacy (non-phx_) keys only; empty means "phx_ key, no secret".
+# Legacy keys only; empty means "phx_ or ethiack_ key, no secret".
 ethiack_api_secret: ""
 
 # ── Beacon identity ───────────────────────────────────────────────────────────
