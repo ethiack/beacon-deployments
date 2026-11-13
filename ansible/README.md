@@ -33,7 +33,7 @@ Tested on: Ubuntu 20.04/22.04/24.04, Debian 11/12, Amazon Linux 2/2023, RHEL/Cen
    # Production (vault-encrypted):
    ansible-vault encrypt_string 'your_api_key' --name 'ethiack_api_key'
    # Legacy keys (not starting with phx_ or ethiack_) only:
-   ansible-vault encrypt_string 'your_api_secret'  --name 'ethiack_api_secret'
+   ansible-vault encrypt_string 'your_api_secret' --name 'ethiack_api_secret'
    # Paste the output into group_vars/all.yml
    ```
 

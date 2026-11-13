@@ -8,8 +8,9 @@ Use these manifests with `kubectl apply` if you prefer not to use Helm.
    ```bash
    echo -n 'YOUR_API_KEY' | base64
    ```
-   A key starting with `phx_` or `ethiack_` needs nothing else. For a legacy key:secret pair, also
-   uncomment `ETHIACK_API_SECRET` and set it to `echo -n 'YOUR_API_SECRET' | base64`.
+   A key starting with `phx_` or `ethiack_` needs nothing else. For a legacy
+   key:secret pair, also uncomment `ETHIACK_API_SECRET` and set it to
+   `echo -n 'YOUR_API_SECRET' | base64`.
 
 2. Edit `deployment.yaml` - set `ETHIACK_BEACON_NAME` and `ETHIACK_BEACON_CIDRS`.
 

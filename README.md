@@ -105,16 +105,17 @@ See [`helm/ethiack-beacon/`](helm/ethiack-beacon/) for the full chart and values
 
 ### Upgrading to chart 0.2.0
 
-Chart 0.2.0 makes `credentials.apiSecret` optional (only legacy keys need it) and renders the credentials Secret as `data` instead of `stringData`.
+Chart 0.2.0 makes `credentials.apiSecret` optional (only legacy keys need it)
+and renders the credentials Secret as `data` instead of `stringData`.
 Upgrading in place with both values still set is a no-op change - nothing to do.
 
-If you are **rotating a legacy key:secret pair to a `phx_` or `ethiack_` key** on a release
-first installed with chart 0.1.0, clearing `credentials.apiSecret` leaves the old
-`ETHIACK_API_SECRET` orphaned in the live Secret: it is named under `stringData`
-in that release's stored manifest, so Helm computes no deletion for it. The
-beacon ignores it - the CLI picks its auth scheme from the key prefix and never
-sends two credentials - but to clear the stale value, delete the Secret once and
-re-run the upgrade:
+If you are **rotating a legacy key:secret pair to a `phx_` or `ethiack_` key**
+on a release first installed with chart 0.1.0, clearing `credentials.apiSecret`
+leaves the old `ETHIACK_API_SECRET` orphaned in the live Secret: it is named
+under `stringData` in that release's stored manifest, so Helm computes no
+deletion for it. The beacon ignores it - the CLI picks its auth scheme from the
+key prefix and never sends two credentials - but to clear the stale value,
+delete the Secret once and re-run the upgrade:
 
 ```bash
 # Matches only this release's credentials Secret, whatever it is named
@@ -171,7 +172,8 @@ See [`kubernetes/README.md`](kubernetes/README.md) for notes on host networking,
 it. If you pin an image version (Helm `image.tag`, Ansible `ethiack_beacon_image`,
 or the image in `kubernetes/deployment.yaml`), move to `2.1.3` or newer before
 switching to a `phx_` key - older versions only accept a key:secret pair.
-`ethiack_` keys need beacon **2.3.0** or later, in the same way.
+`ethiack_` keys need beacon **2.3.0** or later. Move a pinned image to `2.3.0`
+or newer before switching to an `ethiack_` key.
 
 ### Legacy credentials
 
