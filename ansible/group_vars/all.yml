@@ -5,7 +5,7 @@
 ethiack_api_key: ""
 
 # ── Legacy credentials ───────────────────────────────────────────────────────
-# Only for legacy (non-phx_) key:secret pairs. Leave empty for phx_ keys -
+# Only for legacy key:secret pairs. Leave empty for phx_ and ethiack_ keys -
 # ETHIACK_API_SECRET is then omitted from the generated beacon.env entirely.
 ethiack_api_secret: ""
 

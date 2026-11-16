@@ -31,9 +31,9 @@ beacon:
 # ── API credentials (apiKey required; apiSecret legacy keys only) ─────────────
 
 credentials:
-  # A phx_-prefixed key is a bearer token and needs no secret.
+  # A key starting with phx_ or ethiack_ is a bearer token and needs no secret.
   apiKey: ""
-  # Legacy (non-phx_) key:secret pairs only. Leave empty for phx_ keys - the
+  # Legacy key:secret pairs only. Leave empty for phx_ and ethiack_ keys - the
   # chart then omits ETHIACK_API_SECRET from the Secret. On a release first
   # installed with chart <= 0.1.0, clearing this leaves the old value orphaned
   # in the live Secret (harmless, but see "Upgrading to chart 0.2.0" in the
@@ -42,8 +42,8 @@ credentials:
 
   # Use an existing Kubernetes Secret instead of creating one.
   # The Secret must contain key: ETHIACK_API_KEY
-  # Add ETHIACK_API_SECRET only for legacy (non-phx_) keys - do not include it,
-  # not even empty, alongside a phx_ key.
+  # Add ETHIACK_API_SECRET only for legacy keys - do not include it, not even
+  # empty, alongside a phx_ or ethiack_ key.
   existingSecret: ""
 
 # ── Container image ───────────────────────────────────────────────────────────
